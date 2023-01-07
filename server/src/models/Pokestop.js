@@ -519,7 +519,7 @@ module.exports = class Pokestop extends Model {
         if (onlyEventStops && pokestopPerms) {
           stops.orWhere((event) => {
             event
-              .where('display_type', 7)
+              .where('display_type', '>=', 7)
               .andWhere('character', 0)
               .andWhere(
                 multiInvasionMs ? 'expiration_ms' : 'expiration',
@@ -586,6 +586,7 @@ module.exports = class Pokestop extends Model {
           'power_up_end_timestamp',
         ])
         if (filters.onlyEventStops) {
+          this.fieldAssigner(filtered, pokestop, ['invasions'])
           filtered.invasions = pokestop.invasions.filter(
             (invasion) => !invasion.grunt_type,
           )
@@ -593,6 +594,12 @@ module.exports = class Pokestop extends Model {
             filtered.display_type = Math.max(
               ...filtered.invasions.map((inv) => inv.display_type),
             )
+            if (filtered.invasions[0].incident_expire_timestamp > 0) {
+              filtered.display_type = 8
+            }
+          }
+          if (Number.isNaN(filtered.display_type)) {
+            filtered.display_type = null
           }
         }
       }
